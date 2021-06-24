@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:personal_expenses_app/models/Transaction.dart';
 import 'package:intl/intl.dart';
 import 'package:personal_expenses_app/widgets/chart.dart';
@@ -6,6 +7,8 @@ import 'package:personal_expenses_app/widgets/new_transaction.dart';
 import 'package:personal_expenses_app/widgets/transaction_list.dart';
 
 void main() {
+  // SystemChrome.setPreferredOrientations(
+  //     [DeviceOrientation.portraitUp, DeviceOrientation.portraitUp,]);
   runApp(MyApp());
 }
 
@@ -46,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //     amount: 16.99,
     //     date: DateTime.now()),
   ];
+  bool _showChart = false;
 
   List<Transaction> get _recentTransactions {
     return _userTransaction.where((tx) {
@@ -55,7 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  void _addNewTransaction(String txTitle, double txAmount, DateTime chosenDate) {
+  void _addNewTransaction(String txTitle, double txAmount,
+      DateTime chosenDate) {
     final newTx = Transaction(
         id: DateTime.now().toString(),
         title: txTitle,
@@ -89,31 +94,70 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation;
+    final appBar = AppBar(
+      backgroundColor: Theme
+          .of(context)
+          .primaryColor,
+      title: Text("Personal Expense"),
+      actions: [
+        IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _startAddNewTransaction(context))
+      ],
+    );
+    final txListWidget = Container(
+        height:
+        (MediaQuery
+            .of(context)
+            .size
+            .height - appBar.preferredSize.height) *
+            0.7,
+        child: TransactionList(_recentTransactions, _deleteTransaction));
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: Text("Personal Expense"),
-        actions: [
-          IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () => _startAddNewTransaction(context))
-        ],
-      ),
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          // mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Chart(_recentTransactions),
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Colors.blue,
-                child: Text("CHART!"),
-                elevation: 5,
+            if (isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Show Chart"),
+                  Switch(
+                    value: _showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        _showChart = val;
+                      });
+                    },
+                  )
+                ],
               ),
-            ),
-            TransactionList(_recentTransactions, _deleteTransaction)
+            if(!isLandscape) Container(
+                height: (MediaQuery
+                    .of(context)
+                    .size
+                    .height -
+                    appBar.preferredSize.height -
+                    MediaQuery
+                        .of(context)
+                        .padding
+                        .top) *
+                    0.3,
+                child: Chart(_recentTransactions)),
+            if(!isLandscape) txListWidget,
+            if(isLandscape) _showChart
+                ? Container(
+                height: (MediaQuery
+                    .of(context).size.height -
+                    appBar.preferredSize.height -
+                    MediaQuery.of(context).padding.top) *
+                    0.7,
+                child: Chart(_recentTransactions))
+                : txListWidget
           ],
         ),
       ),
