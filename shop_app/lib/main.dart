@@ -13,7 +13,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (ctx) => Products(),
+      // value: Products(),
+      create: (_) => Products(),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -30,3 +31,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/**
+ * ChangeNotifierProvider의 create은 객체를 새로 만들어서 공유하는 것이고,
+ * ChangeNotifierProvider.value는 기존에 존재하는 객체를 재사용하는 것이다.
+*/
